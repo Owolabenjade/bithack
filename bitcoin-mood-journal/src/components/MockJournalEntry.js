@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import MockMoodSelector from './MockMoodSelector';
+import MockMoodSelector from './MoodSelector';
 
 const MockJournalEntry = ({ onEntryAdded }) => {
   const [content, setContent] = useState('');
