@@ -92,7 +92,7 @@ export const getEntry = async (entryId) => {
       id: 1,
       content: "Feeling really productive today! Got a lot done on my hackathon project.",
       mood: 1, // Happy
-      timestamp: Date.now() - 1000 * 60 * 60 * 2, // 2 hours ago
+      timestamp: new Date('2025-03-15T14:30:00').getTime(), // Use proper date
       owner: "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM",
       inscriptionId: "92a6e030fe9ed2e189760h"
     },
@@ -100,7 +100,7 @@ export const getEntry = async (entryId) => {
       id: 2,
       content: "Frustrated with some technical issues, but still making progress.",
       mood: 4, // Anxious
-      timestamp: Date.now() - 1000 * 60 * 60 * 24, // 1 day ago
+      timestamp: new Date('2025-03-16T09:15:00').getTime(), // Use proper date
       owner: "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM",
       inscriptionId: null
     },
@@ -108,7 +108,7 @@ export const getEntry = async (entryId) => {
       id: 3,
       content: "Excited about the potential of this project! Bitcoin Ordinals for mood tracking could be really useful.",
       mood: 5, // Excited
-      timestamp: Date.now() - 1000 * 60 * 60 * 48, // 2 days ago
+      timestamp: new Date('2025-03-17T11:45:00').getTime(), // Use proper date
       owner: "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM",
       inscriptionId: "83bc2e53a9b17fd42891t"
     }

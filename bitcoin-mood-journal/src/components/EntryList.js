@@ -1,37 +1,15 @@
 import React from 'react';
 import { getMoodName, getMoodEmoji } from '../services/contractService';
-import { getInscriptionViewLink, hasInscription, createOrdinalInscription } from '../services/ordinalsService';
-import { setInscriptionId } from '../services/contractService';
 
-const EntryList = ({ entries, loading, onRefresh }) => {
-  // Handle creating an ordinal inscription for an entry
-  const handleCreateInscription = async (entry) => {
-    try {
-      // Call the ordinals service to create an inscription
-      const result = await createOrdinalInscription(entry);
-      
-      if (result.success) {
-        // Update the entry with the new inscription ID
-        await setInscriptionId(entry.id, result.inscriptionId);
-        // Refresh the entries list
-        onRefresh();
-      }
-    } catch (error) {
-      console.error('Error creating inscription:', error);
-      alert('Failed to create inscription. Please try again.');
-    }
+const EntryList = ({ entries, loading, onRefresh, onCreateInscription }) => {
+  // Helper function to get inscription view link
+  const getInscriptionViewLink = (inscriptionId) => {
+    return `https://ordinals.com/inscription/${inscriptionId}`;
   };
 
-  // Format block height as a readable date
-  const formatBlockDate = (blockHeight) => {
-    // In a real app, you would convert block height to an approximate date
-    // For the hackathon, we'll use a simple estimation
-    const now = new Date();
-    // Assuming 10 minutes per block on average
-    const minutesAgo = blockHeight * 10;
-    const dateAgo = new Date(now.getTime() - (minutesAgo * 60000));
-    
-    return dateAgo.toLocaleString();
+  // Format date for display
+  const formatDate = (timestamp) => {
+    return new Date(timestamp).toLocaleString();
   };
 
   // Loading state
@@ -64,7 +42,7 @@ const EntryList = ({ entries, loading, onRefresh }) => {
               <span>{getMoodName(entry.mood)}</span>
             </div>
             <div className="entry-date">
-              {formatBlockDate(entry.timestamp)}
+              {formatDate(entry.timestamp)}
             </div>
           </div>
           
@@ -72,7 +50,7 @@ const EntryList = ({ entries, loading, onRefresh }) => {
             {entry.content}
           </div>
           
-          {hasInscription(entry) ? (
+          {entry.inscriptionId ? (
             <div className="entry-inscription">
               <a 
                 href={getInscriptionViewLink(entry.inscriptionId)}
@@ -85,7 +63,7 @@ const EntryList = ({ entries, loading, onRefresh }) => {
           ) : (
             <div className="entry-inscription">
               <button 
-                onClick={() => handleCreateInscription(entry)}
+                onClick={() => onCreateInscription(entry.id)}
                 className="connect-button"
               >
                 Create Ordinal Inscription

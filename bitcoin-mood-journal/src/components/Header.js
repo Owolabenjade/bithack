@@ -10,7 +10,6 @@ const Header = ({ userData, onSignOut, activeTab, setActiveTab }) => {
   return (
     <header className="app-header">
       <div className="app-title">
-        <img src="/logo.png" alt="Logo" className="app-logo" />
         <h1>Bitcoin Mood Journal</h1>
       </div>
       
@@ -33,7 +32,7 @@ const Header = ({ userData, onSignOut, activeTab, setActiveTab }) => {
           
           <div className="auth-section">
             <div className="user-info">
-              <span>{formatAddress(userData.profile.stxAddress.testnet)}</span>
+              <span>{formatAddress(userData.profile?.stxAddress?.testnet || '')}</span>
             </div>
             <button className="connect-button" onClick={onSignOut}>
               Sign Out

@@ -9,12 +9,15 @@ const ConnectWallet = () => {
       <h2>Welcome to Bitcoin Mood Journal</h2>
       <p>Track your moods and thoughts with permanent records on Bitcoin.</p>
       <p>Connect your wallet to get started.</p>
-      <button className="connect-button" onClick={doOpenAuth}>
-        Connect Wallet
-      </button>
+      
+      <div style={{ marginTop: '30px' }}>
+        <button className="connect-button" onClick={doOpenAuth}>
+          Connect Wallet
+        </button>
+      </div>
+      
       <div className="wallet-info">
         <p>This app requires a Stacks wallet like Hiro Wallet or Xverse.</p>
-        <p>For the hackathon demo, you'll be able to see a simulated experience after connecting.</p>
       </div>
     </div>
   );

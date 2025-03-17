@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import MoodSelector from './MockMoodSelector';
-import { addJournalEntry } from '../services/contractService';
+import MoodSelector from './MoodSelector';
 
 const JournalEntry = ({ onEntryAdded }) => {
   const [content, setContent] = useState('');
@@ -16,17 +15,15 @@ const JournalEntry = ({ onEntryAdded }) => {
     setIsSubmitting(true);
     
     try {
-      // Call the contract service to add a new entry
-      const result = await addJournalEntry(content, selectedMood);
+      // Instead of calling the blockchain, just pass the data to parent component
+      onEntryAdded({
+        content,
+        mood: selectedMood
+      });
       
       // Reset form after successful submission
       setContent('');
       setSelectedMood(null);
-      
-      // Notify parent component of new entry
-      if (onEntryAdded) {
-        onEntryAdded();
-      }
     } catch (error) {
       console.error('Failed to add journal entry:', error);
       setError('Failed to save your entry. Please try again.');

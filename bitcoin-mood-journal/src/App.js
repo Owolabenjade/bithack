@@ -32,6 +32,7 @@ const App = () => {
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('new'); // 'new' or 'history'
+  const [entryCount, setEntryCount] = useState(3); // Initial count of mock entries
 
   // Initialize wallet connection
   useEffect(() => {
@@ -48,19 +49,19 @@ const App = () => {
 
   // Fetch entries when user is authenticated
   useEffect(() => {
-    if (userData && userData.profile && userData.profile.stxAddress) {
+    if (userData && userData.profile) {
       fetchEntries();
     }
   }, [userData]);
 
   // Fetch entries from the blockchain
   const fetchEntries = async () => {
-    if (!userData || !userData.profile || !userData.profile.stxAddress) return;
+    if (!userData || !userData.profile) return;
     
     setLoading(true);
     try {
       // Use testnet or mainnet address based on availability
-      const address = userData.profile.stxAddress.testnet || userData.profile.stxAddress;
+      const address = userData.profile.stxAddress?.testnet || userData.profile.stxAddress;
       const userEntries = await getUserEntries(address);
       setEntries(userEntries);
     } catch (error) {
@@ -71,10 +72,37 @@ const App = () => {
   };
 
   // Handle successful entry creation
-  const handleEntryAdded = () => {
-    fetchEntries();
+  const handleEntryAdded = (newEntry) => {
+    // Create a new entry with the current time
+    const newEntryWithTimestamp = {
+      id: entryCount + 1,
+      content: newEntry.content,
+      mood: newEntry.mood,
+      timestamp: new Date().getTime(),
+      owner: userData.profile.stxAddress?.testnet || userData.profile.stxAddress,
+      inscriptionId: null
+    };
+    
+    // Update entry count for future entries
+    setEntryCount(prevCount => prevCount + 1);
+    
+    // Add the new entry to the list
+    setEntries([newEntryWithTimestamp, ...entries]);
+    
     // Switch to history tab after adding an entry
     setActiveTab('history');
+  };
+
+  // Handle ordinal inscription creation
+  const handleCreateInscription = (entryId) => {
+    // Update the entry with a mock inscription ID
+    setEntries(
+      entries.map(entry => 
+        entry.id === entryId 
+          ? { ...entry, inscriptionId: `${Date.now().toString(16)}i0` } 
+          : entry
+      )
+    );
   };
 
   // Authentication config
@@ -127,6 +155,7 @@ const App = () => {
                   entries={entries} 
                   loading={loading} 
                   onRefresh={fetchEntries}
+                  onCreateInscription={handleCreateInscription}
                 />
               )}
             </>
