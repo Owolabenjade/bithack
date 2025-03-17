@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Connect } from '@stacks/connect-react';
 import { UserSession, AppConfig } from '@stacks/auth';
-import { AuthOptions } from '@stacks/connect';
 
 // Components
 import Header from './components/Header';
@@ -17,7 +16,17 @@ import './styles/main.css';
 
 // App config for Stacks authentication
 const appConfig = new AppConfig(['store_write', 'publish_data']);
+// Create a fresh UserSession to avoid version conflicts
 const userSession = new UserSession({ appConfig });
+
+// Clear any existing session data to avoid version conflicts
+try {
+  if (typeof localStorage !== 'undefined') {
+    localStorage.removeItem('blockstack-session');
+  }
+} catch (e) {
+  console.error('Error clearing session data:', e);
+}
 
 const App = () => {
   const [userData, setUserData] = useState(null);
@@ -27,8 +36,16 @@ const App = () => {
 
   // Authentication state
   useEffect(() => {
-    if (userSession.isUserSignedIn()) {
-      setUserData(userSession.loadUserData());
+    try {
+      if (userSession.isUserSignedIn()) {
+        setUserData(userSession.loadUserData());
+      }
+    } catch (error) {
+      console.error('Error checking authentication state:', error);
+      // Clear any corrupted session data
+      if (typeof localStorage !== 'undefined') {
+        localStorage.removeItem('blockstack-session');
+      }
     }
   }, []);
 
@@ -69,8 +86,11 @@ const App = () => {
     },
     redirectTo: '/',
     onFinish: () => {
-      setUserData(userSession.loadUserData());
-      window.location.reload();
+      try {
+        setUserData(userSession.loadUserData());
+      } catch (error) {
+        console.error('Error loading user data:', error);
+      }
     },
     userSession,
   };
