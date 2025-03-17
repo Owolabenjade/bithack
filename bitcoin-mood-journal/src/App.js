@@ -1,118 +1,144 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Connect } from '@stacks/connect-react';
+import { AppConfig, UserSession } from '@stacks/auth';
+
+// Components
+import Header from './components/Header';
+import JournalEntry from './components/JournalEntry';
+import EntryList from './components/EntryList';
+import ConnectWallet from './components/ConnectWallet';
+
+// Services
+import { getUserEntries } from './services/contractService';
+
+// Styles
 import './styles/main.css';
 
-// Import mockup components rather than real ones
-import MockHeader from './components/MockHeader';
-import MockJournalEntry from './components/MockJournalEntry';
-import MockEntryList from './components/MockEntryList';
-
-// Sample mock data
-const MOCK_ENTRIES = [
-  {
-    id: 1,
-    content: "Feeling really productive today! Got a lot done on my hackathon project.",
-    mood: 1, // Happy
-    timestamp: Date.now() - 1000 * 60 * 60 * 2, // 2 hours ago
-    inscriptionId: "92a6e030fe9ed2e189760h"
-  },
-  {
-    id: 2,
-    content: "Frustrated with some technical issues, but still making progress.",
-    mood: 4, // Anxious
-    timestamp: Date.now() - 1000 * 60 * 60 * 24, // 1 day ago
-    inscriptionId: null
-  },
-  {
-    id: 3,
-    content: "Excited about the potential of this project! Bitcoin Ordinals for mood tracking could be really useful.",
-    mood: 5, // Excited
-    timestamp: Date.now() - 1000 * 60 * 60 * 48, // 2 days ago
-    inscriptionId: "83bc2e53a9b17fd42891t"
+// Clear any session data to avoid version conflicts
+if (typeof window !== 'undefined' && window.localStorage) {
+  try {
+    localStorage.removeItem('blockstack-session');
+  } catch (e) {
+    console.error('Failed to clear session data:', e);
   }
-];
+}
 
-const MockApp = () => {
-  const [entries, setEntries] = useState(MOCK_ENTRIES);
-  const [activeTab, setActiveTab] = useState('new');
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+// Create a fresh app config and user session
+const appConfig = new AppConfig(['store_write', 'publish_data']);
+const userSession = new UserSession({ appConfig });
 
-  // Simulate adding a new entry
-  const handleEntryAdded = (newEntry) => {
-    // Create a "fake" new entry with the next ID
-    const entry = {
-      id: entries.length + 1,
-      content: newEntry.content,
-      mood: newEntry.mood,
-      timestamp: Date.now(),
-      inscriptionId: null
-    };
+const App = () => {
+  const [userData, setUserData] = useState(null);
+  const [entries, setEntries] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState('new'); // 'new' or 'history'
+
+  // Initialize wallet connection
+  useEffect(() => {
+    if (userSession.isUserSignedIn()) {
+      try {
+        const data = userSession.loadUserData();
+        setUserData(data);
+      } catch (e) {
+        console.error('Error loading user data:', e);
+        userSession.signUserOut();
+      }
+    }
+  }, []);
+
+  // Fetch entries when user is authenticated
+  useEffect(() => {
+    if (userData && userData.profile && userData.profile.stxAddress) {
+      fetchEntries();
+    }
+  }, [userData]);
+
+  // Fetch entries from the blockchain
+  const fetchEntries = async () => {
+    if (!userData || !userData.profile || !userData.profile.stxAddress) return;
     
-    // Add to our mock entries
-    setEntries([entry, ...entries]);
-    
-    // Switch to history tab
+    setLoading(true);
+    try {
+      // Use testnet or mainnet address based on availability
+      const address = userData.profile.stxAddress.testnet || userData.profile.stxAddress;
+      const userEntries = await getUserEntries(address);
+      setEntries(userEntries);
+    } catch (error) {
+      console.error('Failed to fetch entries:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle successful entry creation
+  const handleEntryAdded = () => {
+    fetchEntries();
+    // Switch to history tab after adding an entry
     setActiveTab('history');
   };
 
-  // Simulate adding an inscription to an entry
-  const handleCreateInscription = (entryId) => {
-    setEntries(
-      entries.map(entry => 
-        entry.id === entryId 
-          ? { ...entry, inscriptionId: `${Date.now().toString(16)}i0` } 
-          : entry
-      )
-    );
+  // Authentication config
+  const authOptions = {
+    appDetails: {
+      name: 'Bitcoin Mood Journal',
+      icon: window.location.origin + '/logo.png',
+    },
+    redirectTo: '/',
+    onFinish: () => {
+      try {
+        const data = userSession.loadUserData();
+        setUserData(data);
+        window.history.replaceState({}, document.title, '/');
+      } catch (error) {
+        console.error('Error loading user data after auth:', error);
+      }
+    },
+    userSession,
   };
 
-  // Simulate login/logout
-  const handleToggleLogin = () => {
-    setIsLoggedIn(!isLoggedIn);
+  // Handle sign out
+  const handleSignOut = () => {
+    userSession.signUserOut();
+    setUserData(null);
+    setEntries([]);
   };
 
   return (
-    <div className="app-container">
-      <MockHeader 
-        isLoggedIn={isLoggedIn}
-        onToggleLogin={handleToggleLogin}
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-      />
-      
-      <main className="main-content">
-        {!isLoggedIn ? (
-          <div className="connect-wallet">
-            <h2>Welcome to Bitcoin Mood Journal</h2>
-            <p>Track your moods and thoughts with permanent records on Bitcoin.</p>
-            <p>Connect your wallet to get started.</p>
-            <button className="connect-button" onClick={handleToggleLogin}>
-              Connect Wallet (Demo)
-            </button>
-            <div className="wallet-info">
-              <p>This is a demo version for the Buidl Battle Hackathon.</p>
-            </div>
-          </div>
-        ) : (
-          <>
-            {activeTab === 'new' && (
-              <MockJournalEntry onEntryAdded={handleEntryAdded} />
-            )}
-            
-            {activeTab === 'history' && (
-              <MockEntryList 
-                entries={entries} 
-                onCreateInscription={handleCreateInscription}
-              />
-            )}
-          </>
-        )}
-      </main>
-      
-      <footer className="app-footer">
-        <p>Built for Buidl Battle · Hackathon Project · 2025</p>
-      </footer>
-    </div>
+    <Connect authOptions={authOptions}>
+      <div className="app-container">
+        <Header 
+          userData={userData} 
+          onSignOut={handleSignOut}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+        />
+        
+        <main className="main-content">
+          {!userData ? (
+            <ConnectWallet />
+          ) : (
+            <>
+              {activeTab === 'new' && (
+                <JournalEntry onEntryAdded={handleEntryAdded} />
+              )}
+              
+              {activeTab === 'history' && (
+                <EntryList 
+                  entries={entries} 
+                  loading={loading} 
+                  onRefresh={fetchEntries}
+                />
+              )}
+            </>
+          )}
+        </main>
+        
+        <footer className="app-footer">
+          <p>Built for Buidl Battle · Hackathon Project · 2025</p>
+        </footer>
+      </div>
+    </Connect>
   );
 };
 
-export default MockApp;
+export default App;

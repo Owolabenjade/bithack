@@ -14,6 +14,7 @@ const ConnectWallet = () => {
       </button>
       <div className="wallet-info">
         <p>This app requires a Stacks wallet like Hiro Wallet or Xverse.</p>
+        <p>For the hackathon demo, you'll be able to see a simulated experience after connecting.</p>
       </div>
     </div>
   );

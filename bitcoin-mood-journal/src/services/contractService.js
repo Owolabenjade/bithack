@@ -7,7 +7,6 @@ import {
   stringUtf8CV, 
   uintCV, 
   cvToValue,
-  fetchCallReadOnlyFunction, // Using fetchCallReadOnlyFunction instead of callReadOnlyFunction
   principalCV 
 } from '@stacks/transactions';
 
@@ -82,77 +81,52 @@ export const setInscriptionId = async (entryId, inscriptionId) => {
   return openContractCall(options);
 };
 
+// For the hackathon demo, we'll use mock data to avoid blockchain calls
+// In a production app, these would make real contract calls
+
 // Get a specific entry
 export const getEntry = async (entryId) => {
-  const functionName = 'get-entry';
-  const functionArgs = [uintCV(entryId)];
-  
-  const options = {
-    contractAddress,
-    contractName,
-    functionName,
-    functionArgs,
-    network,
-    senderAddress: userSession.isUserSignedIn() 
-      ? userSession.loadUserData().profile.stxAddress.testnet
-      : contractAddress,
+  // Mock implementation for demo
+  const mockEntries = {
+    1: {
+      id: 1,
+      content: "Feeling really productive today! Got a lot done on my hackathon project.",
+      mood: 1, // Happy
+      timestamp: Date.now() - 1000 * 60 * 60 * 2, // 2 hours ago
+      owner: "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM",
+      inscriptionId: "92a6e030fe9ed2e189760h"
+    },
+    2: {
+      id: 2,
+      content: "Frustrated with some technical issues, but still making progress.",
+      mood: 4, // Anxious
+      timestamp: Date.now() - 1000 * 60 * 60 * 24, // 1 day ago
+      owner: "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM",
+      inscriptionId: null
+    },
+    3: {
+      id: 3,
+      content: "Excited about the potential of this project! Bitcoin Ordinals for mood tracking could be really useful.",
+      mood: 5, // Excited
+      timestamp: Date.now() - 1000 * 60 * 60 * 48, // 2 days ago
+      owner: "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM",
+      inscriptionId: "83bc2e53a9b17fd42891t"
+    }
   };
   
-  try {
-    // Using fetchCallReadOnlyFunction instead of callReadOnlyFunction
-    const result = await fetchCallReadOnlyFunction(options);
-    // If no result, return null
-    if (!result.value) return null;
-    
-    // Convert clarity value to JavaScript object
-    const entry = cvToValue(result);
-    
-    return {
-      id: entryId,
-      content: entry.content,
-      mood: entry.mood,
-      timestamp: entry.timestamp,
-      owner: entry.owner,
-      inscriptionId: entry['inscription-id'] ? entry['inscription-id'].value : null
-    };
-  } catch (error) {
-    console.error('Error fetching entry:', error);
-    return null;
-  }
+  return mockEntries[entryId] || null;
 };
 
 // Get user entry IDs
 export const getUserEntryIds = async (userAddress) => {
-  const functionName = 'get-user-entry-ids';
-  const functionArgs = [principalCV(userAddress)];
-  
-  const options = {
-    contractAddress,
-    contractName,
-    functionName,
-    functionArgs,
-    network,
-    senderAddress: userSession.isUserSignedIn() 
-      ? userSession.loadUserData().profile.stxAddress.testnet
-      : contractAddress,
-  };
-  
-  try {
-    // Using fetchCallReadOnlyFunction instead of callReadOnlyFunction
-    const result = await fetchCallReadOnlyFunction(options);
-    const idsObj = cvToValue(result);
-    // Extract the list of IDs
-    return idsObj['entry-ids'] || [];
-  } catch (error) {
-    console.error('Error fetching user entry IDs:', error);
-    return [];
-  }
+  // Return mock entry IDs
+  return [1, 2, 3];
 };
 
 // Get all entries for a user
 export const getUserEntries = async (userAddress) => {
   try {
-    // First get all entry IDs for the user
+    // For demo purposes, use static entry IDs
     const entryIds = await getUserEntryIds(userAddress);
     
     // Then fetch each entry
