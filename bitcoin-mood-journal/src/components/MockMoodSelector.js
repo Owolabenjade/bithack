@@ -1,7 +1,6 @@
 import React from 'react';
-import { getMoodName, getMoodEmoji } from '../services/contractService';
 
-const MoodSelector = ({ selectedMood, onMoodSelect }) => {
+const MockMoodSelector = ({ selectedMood, onMoodSelect }) => {
   // Define available moods (matching the contract constants)
   const moods = [
     { id: 1, name: 'Happy', emoji: '😊' },
@@ -27,4 +26,4 @@ const MoodSelector = ({ selectedMood, onMoodSelect }) => {
   );
 };
 
-export default MoodSelector;
+export default MockMoodSelector;

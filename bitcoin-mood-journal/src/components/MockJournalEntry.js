@@ -1,45 +1,36 @@
 import React, { useState } from 'react';
-import MoodSelector from './MockMoodSelector';
-import { addJournalEntry } from '../services/contractService';
+import MockMoodSelector from './MockMoodSelector';
 
-const JournalEntry = ({ onEntryAdded }) => {
+const MockJournalEntry = ({ onEntryAdded }) => {
   const [content, setContent] = useState('');
   const [selectedMood, setSelectedMood] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState(null);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     if (!content || !selectedMood) return;
     
-    setError(null);
     setIsSubmitting(true);
     
-    try {
-      // Call the contract service to add a new entry
-      const result = await addJournalEntry(content, selectedMood);
+    // Simulate a small delay to show loading state
+    setTimeout(() => {
+      onEntryAdded({
+        content,
+        mood: selectedMood
+      });
       
-      // Reset form after successful submission
+      // Reset form
       setContent('');
       setSelectedMood(null);
-      
-      // Notify parent component of new entry
-      if (onEntryAdded) {
-        onEntryAdded();
-      }
-    } catch (error) {
-      console.error('Failed to add journal entry:', error);
-      setError('Failed to save your entry. Please try again.');
-    } finally {
       setIsSubmitting(false);
-    }
+    }, 500);
   };
 
   return (
     <div className="journal-entry-form">
       <h2>How are you feeling today?</h2>
       
-      <MoodSelector 
+      <MockMoodSelector 
         selectedMood={selectedMood} 
         onMoodSelect={setSelectedMood} 
       />
@@ -56,8 +47,6 @@ const JournalEntry = ({ onEntryAdded }) => {
         
         <div className="char-count">{content.length}/250</div>
         
-        {error && <div className="error-message">{error}</div>}
-        
         <button 
           type="submit" 
           className="connect-button"
@@ -70,4 +59,4 @@ const JournalEntry = ({ onEntryAdded }) => {
   );
 };
 
-export default JournalEntry;
+export default MockJournalEntry;
